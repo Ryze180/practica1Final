@@ -1,80 +1,47 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-// ---------- MODELO DE DATOS ----------
-class Dish {
-  final int id;
-  final String name;
-  final String description;
-  final double price;
-  final String imageUrl;
-
-  Dish({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.price,
-    required this.imageUrl,
-  });
-}
-
-// Carta del restaurante: platos veganos sencillos
-final List<Dish> menu = [
-  Dish(
-    id: 1,
-    name: 'Hummus con pan de pita',
-    description: 'Crema de garbanzos con tahini, limón y aceite de oliva.',
-    price: 5.50,
-    imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6ZOM9PBKVAd3jpw9-1oLyykNS44nQH1shsC1a3vRCEoA6yf3IV0gwvqY&s=10',
-  ),
-  Dish(
-    id: 2,
-    name: 'Ensalada de garbanzos',
-    description: 'Garbanzos, tomate, pepino y cebolla morada con limón.',
-    price: 6.50,
-    imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgFb08BO76voeUdaex97ZCsoRKkgBiO2ANU1haKEaBmXF6FYGh-YxaRXk&s=10',
-  ),
-  Dish(
-    id: 3,
-    name: 'Crema de calabaza',
-    description: 'Crema suave de calabaza y zanahoria con aceite de oliva.',
-    price: 5.00,
-    imageUrl: 'https://static.bainet.es/clip/8f39485e-d395-43dc-897c-6bfd73daa501_source-aspect-ratio_1600w_0.jpg',
-  ),
-  Dish(
-    id: 4,
-    name: 'Falafel con tahini',
-    description: 'Croquetas de garbanzo crujientes con salsa de sésamo.',
-    price: 6.00,
-    imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-act30f4NA3ZuBIRs5oEx22I-pQRxTh9JZe-8gamss6ji4VdUFM3WGXo&s=10',
-  ),
-  Dish(
-    id: 5,
-    name: 'Tostada de aguacate',
-    description: 'Pan tostado con aguacate, tomate y un toque de limón.',
-    price: 4.50,
-    imageUrl: 'https://content.cuerpomente.com/medio/2021/09/30/tostada-aguacate-hummus-rabanitos_209d7b5f_1200x1200.jpg',
-  ),
-  Dish(
-    id: 6,
-    name: 'Arroz con verduras',
-    description: 'Arroz salteado con pimiento, calabacín y zanahoria.',
-    price: 7.00,
-    imageUrl: 'https://assets.tmecosys.com/image/upload/t_web_rdp_recipe_584x480_1_5x/img/recipe/ras/Assets/e3dde35b7bc4aadea5806424ded7107c/Derivates/4cbd810c3cc16917169916c1debd24e90548e38d.jpg',
-  ),
-];
+import '../models/dish.dart';
+import 'detail_view.dart';
 
 // ---------- PANTALLA DE LA LISTA ----------
-class RoutesView extends StatelessWidget {
+class RoutesView extends StatefulWidget {
   const RoutesView({super.key});
 
-  // Muestra el mensaje al tocar un plato
-  void _showMessage(BuildContext context, Dish dish) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('El detalle de "${dish.name}" se implementará en la Fase 3'),
-        backgroundColor: const Color(0xFF2D6A4F),
-      ),
+  @override
+  State<RoutesView> createState() => _RoutesViewState();
+}
+
+class _RoutesViewState extends State<RoutesView> {
+  // Future con la carta; se crea una sola vez en initState
+  late Future<Menu> _futureMenu;
+
+  // Texto escrito en el buscador
+  String _search = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _futureMenu = _loadMenu();
+  }
+
+  // Carga y parsea el fichero .json local de forma asíncrona
+  Future<Menu> _loadMenu() async {
+    // Pequeña espera para que se vea el indicador de progreso
+    await Future.delayed(const Duration(seconds: 1));
+    final String jsonString = await rootBundle.loadString('assets/menu.json');
+    final Map<String, dynamic> data = json.decode(jsonString);
+    return Menu.fromJson(data);
+  }
+
+  // Abre la pantalla de detalle pasando el plato por el constructor
+  void _openDetail(BuildContext context, Dish dish) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => DetailView(dish: dish)),
     );
   }
 
@@ -87,17 +54,65 @@ class RoutesView extends StatelessWidget {
         backgroundColor: const Color(0xFF2D6A4F),
         foregroundColor: Colors.white,
       ),
-      // Lista perezosa: solo construye los platos que se ven en pantalla
-      body: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: menu.length,
-        itemBuilder: (context, index) {
-          final dish = menu[index];
-          return DishCard(
-            dish: dish,
-            onTap: () => _showMessage(context, dish),
-          );
-        },
+      body: Column(
+        children: [
+          // Caja de texto para filtrar los platos
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            child: TextField(
+              decoration: const InputDecoration(
+                hintText: 'Buscar plato...',
+                prefixIcon: Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _search = value.toLowerCase();
+                });
+              },
+            ),
+          ),
+          Expanded(
+            child: FutureBuilder<Menu>(
+              future: _futureMenu,
+              builder: (context, snapshot) {
+                // Error al cargar o parsear el .json
+                if (snapshot.hasError) {
+                  return const Center(child: Text('No se ha podido cargar la carta'));
+                }
+                // Mientras se carga: indicador de progreso
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF2D6A4F)),
+                  );
+                }
+                // Platos que coinciden con la búsqueda (nombre o descripción)
+                final dishes = snapshot.data!.dishes
+                    .where((d) =>
+                        d.name.toLowerCase().contains(_search) ||
+                        d.description.toLowerCase().contains(_search))
+                    .toList();
+                if (dishes.isEmpty) {
+                  return const Center(child: Text('No se han encontrado platos'));
+                }
+                // Lista perezosa: solo construye los platos que se ven en pantalla
+                return ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: dishes.length,
+                  itemBuilder: (context, index) {
+                    final dish = dishes[index];
+                    return DishCard(
+                      dish: dish,
+                      onTap: () => _openDetail(context, dish),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -123,34 +138,37 @@ class DishCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Foto del plato
-            Image.network(
-              dish.imageUrl,
-              width: double.infinity,
-              height: 180,
-              fit: BoxFit.cover,
-              // Mientras carga la imagen
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
+            // Foto del plato (Hero: se anima hacia la pantalla de detalle)
+            Hero(
+              tag: 'dish-${dish.id}', // tag único por plato
+              child: Image.network(
+                dish.imageUrl,
+                width: double.infinity,
+                height: 180,
+                fit: BoxFit.cover,
+                // Mientras carga la imagen
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    width: double.infinity,
+                    height: 180,
+                    color: const Color(0xFFD8E9DF),
+                    child: const Center(
+                      child: Icon(Icons.image, color: Color(0xFF2D6A4F)),
+                    ),
+                  );
+                },
+                // Si la imagen falla
+                errorBuilder: (context, error, stackTrace) => Container(
                   width: double.infinity,
                   height: 180,
                   color: const Color(0xFFD8E9DF),
                   child: const Center(
-                    child: Icon(Icons.image, color: Color(0xFF2D6A4F)),
-                  ),
-                );
-              },
-              // Si la imagen falla
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: double.infinity,
-                height: 180,
-                color: const Color(0xFFD8E9DF),
-                child: const Center(
-                  child: FaIcon(
-                    FontAwesomeIcons.leaf,
-                    size: 48,
-                    color: Color(0xFF2D6A4F),
+                    child: FaIcon(
+                      FontAwesomeIcons.leaf,
+                      size: 48,
+                      color: Color(0xFF2D6A4F),
+                    ),
                   ),
                 ),
               ),

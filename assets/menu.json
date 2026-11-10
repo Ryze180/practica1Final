@@ -1,0 +1,46 @@
+{
+  "dishes": [
+    {
+      "id": 1,
+      "name": "Hummus con pan de pita",
+      "description": "Crema de garbanzos con tahini, limón y aceite de oliva.",
+      "price": 5.5,
+      "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6ZOM9PBKVAd3jpw9-1oLyykNS44nQH1shsC1a3vRCEoA6yf3IV0gwvqY&s=10"
+    },
+    {
+      "id": 2,
+      "name": "Ensalada de garbanzos",
+      "description": "Garbanzos, tomate, pepino y cebolla morada con limón.",
+      "price": 6.5,
+      "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgFb08BO76voeUdaex97ZCsoRKkgBiO2ANU1haKEaBmXF6FYGh-YxaRXk&s=10"
+    },
+    {
+      "id": 3,
+      "name": "Crema de calabaza",
+      "description": "Crema suave de calabaza y zanahoria con aceite de oliva.",
+      "price": 5.0,
+      "imageUrl": "https://static.bainet.es/clip/8f39485e-d395-43dc-897c-6bfd73daa501_source-aspect-ratio_1600w_0.jpg"
+    },
+    {
+      "id": 4,
+      "name": "Falafel con tahini",
+      "description": "Croquetas de garbanzo crujientes con salsa de sésamo.",
+      "price": 6.0,
+      "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-act30f4NA3ZuBIRs5oEx22I-pQRxTh9JZe-8gamss6ji4VdUFM3WGXo&s=10"
+    },
+    {
+      "id": 5,
+      "name": "Tostada de aguacate",
+      "description": "Pan tostado con aguacate, tomate y un toque de limón.",
+      "price": 4.5,
+      "imageUrl": "https://content.cuerpomente.com/medio/2021/09/30/tostada-aguacate-hummus-rabanitos_209d7b5f_1200x1200.jpg"
+    },
+    {
+      "id": 6,
+      "name": "Arroz con verduras",
+      "description": "Arroz salteado con pimiento, calabacín y zanahoria.",
+      "price": 7.0,
+      "imageUrl": "https://assets.tmecosys.com/image/upload/t_web_rdp_recipe_584x480_1_5x/img/recipe/ras/Assets/e3dde35b7bc4aadea5806424ded7107c/Derivates/4cbd810c3cc16917169916c1debd24e90548e38d.jpg"
+    }
+  ]
+}
